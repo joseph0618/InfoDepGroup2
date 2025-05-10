@@ -10,56 +10,79 @@ export const getUrl = mutation({
   },
 });
 
-export const createPodcast = mutation({
+export const createMovie = mutation({
   args: {
-    audioStorageId: v.id("_storage"),
-    podcastTitle: v.string(),
-    podcastDescription: v.string(),
-    audioUrl: v.string(),
-    imageUrl: v.string(),
-    imageStorageId: v.id("_storage"),
-    voicePrompt: v.string(),
-    imagePrompt: v.string(),
-    voiceType: v.string(),
-    views: v.number(),
-    audioDuration: v.number(),
+    title: v.string(),
+    description: v.string(),
+    releaseYear: v.optional(v.number()),
+    genre: v.optional(v.array(v.string())),
+    director: v.optional(v.string()),
+    cast: v.optional(v.array(v.string())),
+    imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
+    // Get the current user
     const identity = await ctx.auth.getUserIdentity();
-
     if (!identity) {
-      throw new ConvexError("User not authenticated");
+      throw new ConvexError("You must be logged in to create a movie");
     }
-
+    
+    // Get the user's ID
     const user = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .collect();
-
-    if (user.length === 0) {
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+    
+    if (!user) {
       throw new ConvexError("User not found");
     }
-
-    const podcast = await ctx.db.insert("podcasts", {
+    
+    // Create the movie
+    const movieId = await ctx.db.insert("movies", {
       ...args,
-      // audioStorageId: args.audioStorageId,
-      user: user[0]._id,
-      // podcastTitle: args.podcastTitle,
-      // podcastDescription: args.podcastDescription,
-      // audioUrl: args.audioUrl,
+      user: user._id,
+      // title: args.title,
+      // description: args.description,
+      // releaseYear: args.releaseYear,
+      // genre: args.genre,
+      // director: args.director,
+      // cast: args.cast,
       // imageUrl: args.imageUrl,
       // imageStorageId: args.imageStorageId,
-      author: user[0].name,
-      authorId: user[0].clerkId,
-      // voicePrompt: args.voicePrompt,
-      // imagePrompt: args.imagePrompt,
-      // voiceType: args.voiceType,
-      // views: args.views,
-      authorImageUrl: user[0].imageUrl,
-      // audioDuration: args.audioDuration,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      createdBy: user._id,
+      views: 0,
     });
+    
+    return movieId;
+  },
+});
 
-    return podcast;
+export const updateMovie = mutation({
+  args: {
+    movieId: v.id("movies"),
+    title: v.string(),
+    description: v.string(),
+    releaseYear: v.optional(v.number()),
+    genre: v.optional(v.array(v.string())),
+    director: v.optional(v.string()),
+    cast: v.optional(v.array(v.string())),
+    imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
+  },
+  handler: async (ctx, args) => {
+    const movie = await ctx.db.get(args.movieId);
+
+    if (!movie) {
+      throw new ConvexError("Movie not found");
+    }
+
+    return await ctx.db.patch(args.movieId, {
+      ...args,
+      updatedAt: Date.now(),
+    });
   },
 });
 
