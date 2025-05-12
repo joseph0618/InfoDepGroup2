@@ -86,103 +86,73 @@ export const updateMovie = mutation({
   },
 });
 
-export const getTrendingPodcasts = query({
-  handler: async (ctx) => {
-    const podcasts = await ctx.db.query("podcasts").collect();
-    return podcasts;
-  },
-});
-
-export const getPodcastById = query({
+export const getMovieById = query({
   args: {
-    podcastId: v.id("podcasts"),
+    movieId: v.id("movies"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.podcastId);
+    return await ctx.db.get(args.movieId);
   },
 });
-
-export const getPodcastByVoiceType = query({
+export const getMovieByGenre = query({  
   args: {
-    podcastId: v.id("podcasts"),
+    genre: v.string(),
   },
   handler: async (ctx, args) => {
-    const podcast = await ctx.db.get(args.podcastId);
-
     return await ctx.db
-      .query("podcasts")
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("voiceType"), podcast?.voiceType),
-          q.neq(q.field("_id"), args.podcastId),
-        ),
-      )
+      .query("movies")
+      .filter((q) => q.eq(q.field("genre"), args.genre))
       .collect();
   },
 });
 
-export const getAllPodcasts = query({
+export const getAllMovies = query({
   handler: async (ctx) => {
-    return await ctx.db.query("podcasts").order("desc").collect();
+    return await ctx.db.query("movies").order("desc").collect();
   },
 });
 
-export const getPodcastByAuthorId = query({
+export const getMovieByDirector = query({
   args: {
-    authorId: v.string(),
+    director: v.string(),
   },
   handler: async (ctx, args) => {
-    const podcasts = await ctx.db
-      .query("podcasts")
-      .filter((q) => q.eq(q.field("authorId"), args.authorId))
+    return await ctx.db
+      .query("movies")
+      .filter((q) => q.eq(q.field("director"), args.director))
       .collect();
-
-    const totalListeners = podcasts.reduce(
-      (sum, podcast) => sum + podcast.views,
-      0,
-    );
-
-    return { podcasts, listeners: totalListeners };
   },
 });
-
-export const getPodcastBySearch = query({
+export const getMovieBySearch = query({
   args: {
     search: v.string(),
   },
   handler: async (ctx, args) => {
     if (args.search === "") {
-      return await ctx.db.query("podcasts").order("desc").collect();
+      return await ctx.db.query("movies").order("desc").collect();
     }
-
-    const authorSearch = await ctx.db
-      .query("podcasts")
-      .withSearchIndex("search_author", (q) => q.search("author", args.search))
+    const directorSearch = await ctx.db
+      .query("movies")
+      .withSearchIndex("search_director", (q) => q.search("director", args.search))
       .take(10);
-
-    if (authorSearch.length > 0) {
-      return authorSearch;
+    if (directorSearch.length > 0) {
+      return directorSearch;
     }
-
     const titleSearch = await ctx.db
-      .query("podcasts")
-      .withSearchIndex("search_title", (q) =>
-        q.search("podcastTitle", args.search),
-      )
+      .query("movies")
+      .withSearchIndex("search_title", (q) => q.search("title", args.search))
       .take(10);
-
     if (titleSearch.length > 0) {
       return titleSearch;
     }
-
     return await ctx.db
-      .query("podcasts")
+      .query("movies")
       .withSearchIndex("search_body", (q) =>
-        q.search("podcastDescription" || "podcastTitle", args.search),
+        q.search("description" || "title", args.search),
       )
       .take(10);
   },
-});
+});   
 
 export const updatePodcastViews = mutation({
   args: {
