@@ -28,12 +28,13 @@ export default defineSchema({
     imageUrl: v.string(),
     clerkId: v.string(),
     name: v.string(),
+    joinedAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
 
   comments: defineTable({
     movieId: v.id("movies"),
     userId: v.id("users"),
-    text: v.string(),
+    content: v.string(),
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
     likes: v.number(),

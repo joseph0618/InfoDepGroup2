@@ -1,7 +1,7 @@
 import { mutation, query } from "./_generated/server";
-import { ConvexError, v } from "convex/values";
+import { ConvexError, convexToJson, v } from "convex/values";
 import { Doc, Id } from "./_generated/dataModel";
-import { getUserById } from "./users";
+import { getUserByClerkId, getUserById } from "./users";
 
 export const createMovie = mutation({
   args: {
@@ -24,8 +24,8 @@ export const createMovie = mutation({
     // Get the user's ID
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
+      .filter((q) => q.eq(q.field("email"), identity.email))
+      .collect();
     
     if (!user) {
       throw new ConvexError("User not found");
@@ -34,7 +34,7 @@ export const createMovie = mutation({
     // Create the movie
     const movieId = await ctx.db.insert("movies", {
       ...args,
-      user: user._id,
+      user: user[0]._id,
       // title: args.title,
       // description: args.description,
       // releaseYear: args.releaseYear,
@@ -45,7 +45,7 @@ export const createMovie = mutation({
       // imageStorageId: args.imageStorageId,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      createdBy: user._id,
+      createdBy: user[0]._id,
       views: 0,
     });
     
@@ -87,33 +87,24 @@ export const getMovieById = query({
     return await ctx.db.get(args.movieId);
   },
 });
+
 export const getMoviesByGenre = query({
   args: {
+    movieId: v.id("movies"),
     genre: v.string(),
-    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 10;
-    
-    // Query movies with the specified genre
-    const movies = await ctx.db
+    const movie = await ctx.db.get(args.movieId);
+
+    return await ctx.db
       .query("movies")
-      .filter((q) => q.includes("genre", args.genre))
-      .order("desc")
-      .take(limit);
-    
-    // Get creator info for each movie
-    const moviesWithCreators = await Promise.all(
-      movies.map(async (movie) => {
-        const creator = await getUserById(ctx, movie.createdBy);
-        return {
-          ...movie,
-          creator,
-        };
-      })
-    );
-    
-    return moviesWithCreators;
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("genre"), movie?.genre),
+          q.neq(q.field("_id"), args.movieId),
+        ),
+      )
+      .collect();
   },
 });
 
@@ -134,47 +125,98 @@ export const getMovieByDirector = query({
       .collect();
   },
 });
+
+
 export const searchMovies = query({
   args: {
-    query: v.string(),
-    limit: v.optional(v.number()),
+    search: v.string(),
   },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 10;
-    
-    // Search by title
-    const titleResults = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_title", (q) => q.search("title", args.query))
-      .take(limit);
-    
-    // Search by description
-    const descriptionResults = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_body", (q) => q.search("description", args.query))
-      .take(limit);
-    
-    // Combine and deduplicate results
-    const combinedResults = [...titleResults];
-    for (const movie of descriptionResults) {
-      if (!combinedResults.some((m) => m._id === movie._id)) {
-        combinedResults.push(movie);
-      }
+    if (args.search === "") {
+      return await ctx.db.query("movies").order("desc").collect();
     }
-    
-    // Get creator info for each movie
-    const moviesWithCreators = await Promise.all(
-      combinedResults.map(async (movie) => {
-        const creator = await getUserById(ctx, movie.createdBy);
-        return {
-          ...movie,
-          creator,
-        };
-      })
-    );
-    
-    return moviesWithCreators.slice(0, limit);
+
+    const authorSearch = await ctx.db
+      .query("movies")
+      .withSearchIndex("search_director", (q) => q.search("director", args.search))
+      .take(10);
+
+    if (authorSearch.length > 0) {
+      return authorSearch;
+    }
+
+    const titleSearch = await ctx.db
+      .query("movies")
+      .withSearchIndex("search_title", (q) =>
+        q.search("title", args.search),
+      )
+      .take(10);
+
+    if (titleSearch.length > 0) {
+      return titleSearch;
+    }
+
+    return await ctx.db
+      .query("movies")
+      .withSearchIndex("search_body", (q) =>
+        q.search("description", args.search),
+      )
+      .take(10);
   },
 });
 
+export const deleteMovie = mutation({
+  args: {
+    movieId: v.id("movies"),
+  },
+  handler: async (ctx, args) => {
+    // Get the current user
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("You must be logged in to delete a movie");
+    }
+    // Get the movie
+    const movie = await ctx.db.get(args.movieId);
+    if (!movie) {
+      throw new ConvexError("Movie not found");
+    }
+    // Get the user's ID
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+    // Check if the user is the creator of the movie
+    if (movie.createdBy !== user._id) {
+      throw new ConvexError("You don't have permission to delete this movie");
+    }
+    
+    // Delete the movie
+    await ctx.db.delete(args.movieId);
+    
+    // Delete all comments associated with this movie
+    const comments = await ctx.db
+      .query("comments")
+      .withIndex("by_movie", (q) => q.eq("movieId", args.movieId))
+      .collect();
+    
+    for (const comment of comments) {
+      await ctx.db.delete(comment._id);
+    }
+    
+    // Delete all ratings associated with this movie
+    const ratings = await ctx.db
+      .query("ratings")
+      .withIndex("by_movie", (q) => q.eq("movieId", args.movieId))
+      .collect();
+    
+    for (const rating of ratings) {
+      await ctx.db.delete(rating._id);
+    }
+    
+    return args.movieId;
+  }
+});
 
