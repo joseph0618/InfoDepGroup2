@@ -1,14 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-
-export const getUrl = mutation({
-  args: {
-    storageId: v.id("_storage"),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.storage.getUrl(args.storageId);
-  },
-});
+import { Doc, Id } from "./_generated/dataModel";
+import { getUserById } from "./users";
 
 export const createMovie = mutation({
   args: {
@@ -94,15 +87,33 @@ export const getMovieById = query({
     return await ctx.db.get(args.movieId);
   },
 });
-export const getMovieByGenre = query({  
+export const getMoviesByGenre = query({
   args: {
     genre: v.string(),
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const limit = args.limit ?? 10;
+    
+    // Query movies with the specified genre
+    const movies = await ctx.db
       .query("movies")
-      .filter((q) => q.eq(q.field("genre"), args.genre))
-      .collect();
+      .filter((q) => q.includes("genre", args.genre))
+      .order("desc")
+      .take(limit);
+    
+    // Get creator info for each movie
+    const moviesWithCreators = await Promise.all(
+      movies.map(async (movie) => {
+        const creator = await getUserById(ctx, movie.createdBy);
+        return {
+          ...movie,
+          creator,
+        };
+      })
+    );
+    
+    return moviesWithCreators;
   },
 });
 
@@ -123,69 +134,47 @@ export const getMovieByDirector = query({
       .collect();
   },
 });
-export const getMovieBySearch = query({
+export const searchMovies = query({
   args: {
-    search: v.string(),
+    query: v.string(),
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    if (args.search === "") {
-      return await ctx.db.query("movies").order("desc").collect();
-    }
-    const directorSearch = await ctx.db
+    const limit = args.limit ?? 10;
+    
+    // Search by title
+    const titleResults = await ctx.db
       .query("movies")
-      .withSearchIndex("search_director", (q) => q.search("director", args.search))
-      .take(10);
-    if (directorSearch.length > 0) {
-      return directorSearch;
-    }
-    const titleSearch = await ctx.db
+      .withSearchIndex("search_title", (q) => q.search("title", args.query))
+      .take(limit);
+    
+    // Search by description
+    const descriptionResults = await ctx.db
       .query("movies")
-      .withSearchIndex("search_title", (q) => q.search("title", args.search))
-      .take(10);
-    if (titleSearch.length > 0) {
-      return titleSearch;
+      .withSearchIndex("search_body", (q) => q.search("description", args.query))
+      .take(limit);
+    
+    // Combine and deduplicate results
+    const combinedResults = [...titleResults];
+    for (const movie of descriptionResults) {
+      if (!combinedResults.some((m) => m._id === movie._id)) {
+        combinedResults.push(movie);
+      }
     }
-    return await ctx.db
-      .query("movies")
-      .withSearchIndex("search_body", (q) =>
-        q.search("description" || "title", args.search),
-      )
-      .take(10);
-  },
-});   
-
-export const updatePodcastViews = mutation({
-  args: {
-    podcastId: v.id("podcasts"),
-  },
-  handler: async (ctx, args) => {
-    const podcast = await ctx.db.get(args.podcastId);
-
-    if (!podcast) {
-      throw new ConvexError("Podcast not found");
-    }
-
-    return await ctx.db.patch(args.podcastId, {
-      views: podcast.views + 1,
-    });
+    
+    // Get creator info for each movie
+    const moviesWithCreators = await Promise.all(
+      combinedResults.map(async (movie) => {
+        const creator = await getUserById(ctx, movie.createdBy);
+        return {
+          ...movie,
+          creator,
+        };
+      })
+    );
+    
+    return moviesWithCreators.slice(0, limit);
   },
 });
 
-export const deletePodcast = mutation({
-  args: {
-    podcastId: v.id("podcasts"),
-    imageStorageId: v.id("_storage"),
-    audioStorageId: v.id("_storage"),
-  },
-  handler: async (ctx, args) => {
-    const podcast = await ctx.db.get(args.podcastId);
 
-    if (!podcast) {
-      throw new ConvexError("Podcast not found");
-    }
-
-    await ctx.storage.delete(args.imageStorageId);
-    await ctx.storage.delete(args.audioStorageId);
-    return await ctx.db.delete(args.podcastId);
-  },
-});
