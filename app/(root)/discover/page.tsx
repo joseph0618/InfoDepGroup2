@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import EmptyState from "@/components/EmptyState";
 import LoaderSpiner from "@/components/LoaderSpinner";
-import PodcastCard from "@/components/PodcastCard";
+import PodcastCard from "@/components/MovieCard";
 import Searchbar from "@/components/Searchbar";
 
 function Discover({

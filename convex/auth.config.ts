@@ -1,7 +1,7 @@
 const authConfig = {
   providers: [
     {
-      domain: "https://absolute-hermit-79.clerk.accounts.dev",
+      domain: "https://promoted-whippet-99.clerk.accounts.dev",
       applicationID: "convex",
     },
   ],
