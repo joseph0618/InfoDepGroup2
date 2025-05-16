@@ -159,32 +159,35 @@ export const searchMovies = query({
       return await ctx.db.query("movies").order("desc").collect();
     }
 
-    const authorSearch = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_director", (q) => q.search("director", args.search))
-      .take(10);
+    // Execute all searches in parallel
+    const [directorResults, titleResults, descResults] = await Promise.all([
+      ctx.db
+        .query("movies")
+        .withSearchIndex("search_director", q => q.search("director", args.search))
+        .take(10),
+      ctx.db
+        .query("movies")
+        .withSearchIndex("search_title", q => q.search("title", args.search))
+        .take(10),
+      ctx.db
+        .query("movies")
+        .withSearchIndex("search_body", q => q.search("description", args.search))
+        .take(10)
+    ]);
 
-    if (authorSearch.length > 0) {
-      return authorSearch;
-    }
+    // Combine all results
+    const allResults = [...directorResults, ...titleResults, ...descResults];
 
-    const titleSearch = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_title", (q) =>
-        q.search("title", args.search),
-      )
-      .take(10);
+    // Remove duplicates while preserving order
+    const uniqueResults = allResults.reduce((acc, current) => {
+      if (!acc.some(item => item._id === current._id)) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
 
-    if (titleSearch.length > 0) {
-      return titleSearch;
-    }
-
-    return await ctx.db
-      .query("movies")
-      .withSearchIndex("search_body", (q) =>
-        q.search("description", args.search),
-      )
-      .take(10);
+    // Return top 10 unique results
+    return uniqueResults.slice(0, 10);
   },
 });
 
