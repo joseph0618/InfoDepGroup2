@@ -160,3 +160,32 @@ export const getTopUsersByMovieCount = query({
     return userData.sort((a, b) => b.totalMovies - a.totalMovies);
   },
 });
+
+export const getTopUserByPodcastCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+
+    const userData = await Promise.all(
+      users.map(async (u) => {
+        const movies = await ctx.db
+          .query("movies")
+          .filter((q) => q.eq(q.field("createdBy"), u._id))
+          .collect();
+
+        return {
+          ...u,
+          totalPodcasts: movies.length,
+          podcast: movies.slice(0, 3).map((m) => ({
+            podcastTitle: m.title,
+            podcastId: m._id,
+          })),
+        };
+      })
+    );
+
+    return userData
+      .sort((a, b) => b.totalPodcasts - a.totalPodcasts)
+      .slice(0, 10);
+  },
+});

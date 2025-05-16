@@ -110,7 +110,30 @@ export const getMoviesByGenre = query({
 
 export const getAllMovies = query({
   handler: async (ctx) => {
-    return await ctx.db.query("movies").order("desc").collect();
+    try {
+      const movies = await ctx.db
+        .query("movies")
+        .order("desc")
+        .collect();
+
+      // Validate and transform data
+      const validatedMovies = movies.map(movie => ({
+        _id: movie._id,
+        title: movie.title || "Untitled Movie",
+        description: movie.description || "",
+        views: movie.views || 0,
+        imageUrl: movie.imageUrl || "/default-movie.jpg",
+        createdAt: movie.createdAt || Date.now(),
+        // Include other required fields
+        ...movie
+      }));
+
+      // Sort by views descending as secondary sort
+      return validatedMovies.sort((a, b) => b.views - a.views);
+    } catch (error) {
+      console.error("Failed to fetch movies:", error);
+      return []; // Return empty array instead of throwing error
+    }
   },
 });
 
@@ -162,6 +185,13 @@ export const searchMovies = query({
         q.search("description", args.search),
       )
       .take(10);
+  },
+});
+
+export const getUrl = mutation({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
   },
 });
 

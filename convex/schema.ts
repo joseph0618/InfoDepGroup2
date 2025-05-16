@@ -28,7 +28,7 @@ export default defineSchema({
     imageUrl: v.string(),
     clerkId: v.string(),
     name: v.string(),
-    joinedAt: v.number(),
+    joinedAt: v.optional(v.number()),
   }).index("by_clerk_id", ["clerkId"]),
 
   comments: defineTable({

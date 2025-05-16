@@ -50,6 +50,23 @@ export interface ProfilePodcastProps {
   listeners: number;
 }
 
+export interface ProfileMovieProps {
+  title: string;
+  description: string;
+  releaseYear: string;
+  genre: string;
+  director: string;
+  cast: string;
+  imageUrl: string;
+  imageStorageId: Id<"_storage"> | null;
+}
+
+export interface RatingProps {
+  movieId: Id<"movies">;
+  userId: Id<"users">;
+  score: number;
+}
+
 export interface GeneratePodcastProps {
   voiceType: string;
   setAudio: Dispatch<SetStateAction<string>>;
