@@ -20,35 +20,35 @@ export const createMovie = mutation({
     if (!identity) {
       throw new ConvexError("You must be logged in to create a movie");
     }
-    
+
     // Get the user's ID
     const user = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("email"), identity.email))
       .collect();
-    
+
     if (!user) {
       throw new ConvexError("User not found");
     }
-    
+
     // Create the movie
     const movieId = await ctx.db.insert("movies", {
       ...args,
       user: user[0]._id,
-      // title: args.title,
-      // description: args.description,
-      // releaseYear: args.releaseYear,
-      // genre: args.genre,
-      // director: args.director,
-      // cast: args.cast,
-      // imageUrl: args.imageUrl,
-      // imageStorageId: args.imageStorageId,
+      title: args.title,
+      description: args.description,
+      releaseYear: args.releaseYear,
+      genre: args.genre,
+      director: args.director,
+      cast: args.cast,
+      imageUrl: args.imageUrl,
+      imageStorageId: args.imageStorageId,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       createdBy: user[0]._id,
       views: 0,
     });
-    
+
     return movieId;
   },
 });
@@ -222,30 +222,30 @@ export const deleteMovie = mutation({
     if (movie.createdBy !== user._id) {
       throw new ConvexError("You don't have permission to delete this movie");
     }
-    
+
     // Delete the movie
     await ctx.db.delete(args.movieId);
-    
+
     // Delete all comments associated with this movie
     const comments = await ctx.db
       .query("comments")
       .withIndex("by_movie", (q) => q.eq("movieId", args.movieId))
       .collect();
-    
+
     for (const comment of comments) {
       await ctx.db.delete(comment._id);
     }
-    
+
     // Delete all ratings associated with this movie
     const ratings = await ctx.db
       .query("ratings")
       .withIndex("by_movie", (q) => q.eq("movieId", args.movieId))
       .collect();
-    
+
     for (const rating of ratings) {
       await ctx.db.delete(rating._id);
     }
-    
+
     return args.movieId;
   }
 });

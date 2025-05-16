@@ -12,7 +12,7 @@ function Discover({
 }: {
   searchParams: { search: string };
 }) {
-  const podcastData = useQuery(api.podcasts.getPodcastBySearch, {
+  const movieData = useQuery(api.movies.searchMovies, {
     search: search || "",
   });
 
@@ -21,20 +21,20 @@ function Discover({
       <Searchbar />
       <div className="flex flex-col gap-9">
         <h1 className="text-20 font-bold text-white-1">
-          {search ? "Search results for: " : "Discover Trending Podcasts"}
+          {search ? "Search results for: " : "Discover Trending Movies"}
           {search && <span className="text-white-2">{search}</span>}
         </h1>
-        {podcastData ? (
+        {movieData ? (
           <>
-            {podcastData.length > 0 ? (
+            {movieData.length > 0 ? (
               <div className="podcast_grid">
-                {podcastData?.map(
-                  ({ _id, imageUrl, podcastTitle, podcastDescription }) => (
+                {movieData?.map(
+                  ({ _id, imageUrl, title, description }) => (
                     <PodcastCard
                       key={_id}
-                      podcastId={_id}
-                      title={podcastTitle}
-                      description={podcastDescription}
+                      movieId={_id}
+                      title={title}
+                      description={description}
                       imgUrl={imageUrl!}
                     />
                   ),

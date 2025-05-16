@@ -62,7 +62,7 @@ const CreateMovie = () => {
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
-      
+
       if (!user) {
         toast({
           title: "You must be logged in to create a movie",
@@ -88,7 +88,7 @@ const CreateMovie = () => {
         director: data.director,
         cast: data.cast.split(",").map(item => item.trim()),
         imageUrl,
-        imageStorageId,
+        imageStorageId: imageStorageId ?? undefined,
       });
 
       toast({ title: "Movie created successfully" });
@@ -188,10 +188,10 @@ const CreateMovie = () => {
                 <FormItem className="flex flex-col gap-2.5">
                   <FormLabel className="text-16 font-bold text-white-1">Cast</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Actor 1, Actor 2, Actor 3" 
-                      className="input-class" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Actor 1, Actor 2, Actor 3"
+                      className="input-class"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage className="text-white-1" />
@@ -201,6 +201,7 @@ const CreateMovie = () => {
           </div>
 
           <div className="flex flex-col pt-10">
+            <FormLabel className="text-16 font-bold text-white-1">Upload Image</FormLabel>
             <GenerateThumbnail
               setImage={setImageUrl}
               setImageStorageId={setImageStorageId}
