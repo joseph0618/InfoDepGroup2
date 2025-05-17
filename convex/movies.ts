@@ -146,6 +146,7 @@ export const getAllMovies = query({
 
         return {
           ...movie,
+          genre: movie.genre,
           imageUrl: movie.imageUrl || "/default-movie.jpg",
           rating: averageRating
         };

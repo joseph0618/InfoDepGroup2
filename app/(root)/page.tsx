@@ -25,12 +25,13 @@ const Home = () => {
         ) : allMovies && allMovies.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {allMovies.map(
-              ({ _id, imageUrl, title, description, rating }) => (
+              ({ _id, imageUrl, title, description, rating, genre }) => (
                 <MovieCard
                   key={_id}
                   movieId={_id}
                   title={title}
                   rating={rating || 0} // Handle potential undefined
+                  genre={genre || ["Unknown"]}
                   description={description}
                   imgUrl={imageUrl || "/default-movie.jpg"}
                 />

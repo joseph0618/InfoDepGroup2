@@ -11,6 +11,7 @@ function MovieCard({
   movieId,
   title,
   description,
+  genre,
   rating,
   imgUrl,
 }: MovieCardProps) {
@@ -39,7 +40,7 @@ function MovieCard({
 
   return (
     <div
-      className="w-[180px] cursor-pointer transition-transform duration-300 ease-in-out transform hover:scale-105 relative"
+      className="w-[250px] cursor-pointer transition-transform duration-300 ease-in-out transform hover:scale-105 relative"
       onClick={handleViews}
       onMouseLeave={() => setShowRating(false)}
     >
@@ -54,9 +55,9 @@ function MovieCard({
         <div className="p-2 flex flex-col gap-1">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <h1 className="text-sm font-bold text-white truncate">{title}</h1>
+              <h1 className="text-sm font-bold text-white-1 truncate">{title}</h1>
               <p className="text-xs text-gray-400">
-                ⭐ {rating.toFixed(1)} / 10
+                ⭐ {rating.toFixed(1)} / 5.0
               </p>
             </div>
             <button
@@ -72,11 +73,11 @@ function MovieCard({
               />
             </button>
           </div>
-          <p className="text-xs text-white/70 line-clamp-2">{description}</p>
+          <p className="text-xs text-white-2 line-clamp-2">Genre: {genre}</p>
         </div>
       </div>
       
-      {/* Rating popup */}
+      Rating popup
       {showRating && (
         <div 
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 

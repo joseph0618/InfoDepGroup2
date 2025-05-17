@@ -3,6 +3,7 @@
 import { Dispatch, SetStateAction } from "react";
 
 import { Id } from "@/convex/_generated/dataModel";
+import { StyledString } from "next/dist/build/swc";
 
 export interface EmptyStateProps {
   title: string;
@@ -30,6 +31,7 @@ export interface MovieCardProps {
   imgUrl: string;
   title: string;
   rating: number;
+  genre: string[];
   description: string;
   movieId: Id<"movies">;
 }

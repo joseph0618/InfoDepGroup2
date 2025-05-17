@@ -60,12 +60,11 @@ const StarRating = ({
         onRatingChange(index);
       }
 
-      // Convert 1-5 star rating to 1-10 scale for the database
-      const scaledRating = index * 2;
+    
       
       await rateMovie({
         movieId,
-        score: scaledRating,
+        score: index,
       });
 
       toast({
