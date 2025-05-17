@@ -20,35 +20,35 @@ export const createMovie = mutation({
     if (!identity) {
       throw new ConvexError("You must be logged in to create a movie");
     }
-    
-    // Get the user's ID
+
+    // Get the user's ID using the clerk ID (not email)
     const user = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .collect();
-    
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
     if (!user) {
       throw new ConvexError("User not found");
     }
-    
-    // Create the movie
+
+    // Create the movie with all required fields
     const movieId = await ctx.db.insert("movies", {
-      ...args,
-      user: user[0]._id,
-      // title: args.title,
-      // description: args.description,
-      // releaseYear: args.releaseYear,
-      // genre: args.genre,
-      // director: args.director,
-      // cast: args.cast,
-      // imageUrl: args.imageUrl,
-      // imageStorageId: args.imageStorageId,
+      user: user._id,
+      title: args.title,
+      description: args.description,
+      releaseYear: args.releaseYear,
+      genre: args.genre,
+      director: args.director,
+      cast: args.cast,
+      imageUrl: args.imageUrl,
+      imageStorageId: args.imageStorageId,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      createdBy: user[0]._id,
+      createdBy: user._id,
       views: 0,
+      rating: 0, // Initialize rating to 0
     });
-    
+
     return movieId;
   },
 });
@@ -110,7 +110,61 @@ export const getMoviesByGenre = query({
 
 export const getAllMovies = query({
   handler: async (ctx) => {
-    return await ctx.db.query("movies").order("desc").collect();
+    try {
+      // Get all movies
+      const movies = await ctx.db
+        .query("movies")
+        .order("desc")
+        .collect();
+
+      // Get all ratings to calculate averages
+      const allRatings = await ctx.db
+        .query("ratings")
+        .collect();
+
+      // Group ratings by movie ID and calculate averages
+      const ratingsByMovie = new Map();
+      
+      for (const rating of allRatings) {
+        const movieId = rating.movieId.toString();
+        if (!ratingsByMovie.has(movieId)) {
+          ratingsByMovie.set(movieId, { sum: 0, count: 0 });
+        }
+        const movieRating = ratingsByMovie.get(movieId);
+        movieRating.sum += rating.score;
+        movieRating.count += 1;
+      }
+
+      // Validate and transform data
+      const validatedMovies = movies.map(movie => {
+        // Calculate average rating
+        const movieId = movie._id.toString();
+        const ratingData = ratingsByMovie.get(movieId);
+        const averageRating = ratingData 
+          ? ratingData.sum / ratingData.count 
+          : 0;
+
+        return {
+          ...movie,
+          genre: movie.genre,
+          imageUrl: movie.imageUrl || "/default-movie.jpg",
+          rating: averageRating
+        };
+      });
+
+      // Sort by rating (highest first) and views as secondary sort
+      return validatedMovies.sort((a, b) => {
+        // First sort by rating
+        if (b.rating !== a.rating) {
+          return b.rating - a.rating;
+        }
+        // Then by views
+        return b.views - a.views;
+      });
+    } catch (error) {
+      console.error("Failed to fetch movies:", error);
+      return []; // Return empty array instead of throwing error
+    }
   },
 });
 
@@ -136,32 +190,48 @@ export const searchMovies = query({
       return await ctx.db.query("movies").order("desc").collect();
     }
 
-    const authorSearch = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_director", (q) => q.search("director", args.search))
-      .take(10);
+    // Execute all searches in parallel
+    const [directorResults, titleResults, descResults] = await Promise.all([
+      ctx.db
+        .query("movies")
+        .withSearchIndex("search_director", q => q.search("director", args.search))
+        .take(10),
+      ctx.db
+        .query("movies")
+        .withSearchIndex("search_title", q => q.search("title", args.search))
+        .take(10),
+      ctx.db
+        .query("movies")
+        .withSearchIndex("search_body", q => q.search("description", args.search))
+        .take(10)
+    ]);
 
-    if (authorSearch.length > 0) {
-      return authorSearch;
+    // Combine all results
+    const allResults = [...directorResults, ...titleResults, ...descResults];
+
+    // Remove duplicates using a Map to track unique IDs (more efficient than .some())
+    const uniqueMoviesMap = new Map();
+    
+    for (const movie of allResults) {
+      // Convert _id to string for use as a Map key
+      const idStr = movie._id.toString();
+      if (!uniqueMoviesMap.has(idStr)) {
+        uniqueMoviesMap.set(idStr, movie);
+      }
     }
+    
+    // Convert Map values back to array
+    const uniqueResults = Array.from(uniqueMoviesMap.values());
 
-    const titleSearch = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_title", (q) =>
-        q.search("title", args.search),
-      )
-      .take(10);
+    // Return top 10 unique results
+    return uniqueResults.slice(0, 10);
+  },
+});
 
-    if (titleSearch.length > 0) {
-      return titleSearch;
-    }
-
-    return await ctx.db
-      .query("movies")
-      .withSearchIndex("search_body", (q) =>
-        q.search("description", args.search),
-      )
-      .take(10);
+export const getUrl = mutation({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
   },
 });
 
@@ -192,31 +262,50 @@ export const deleteMovie = mutation({
     if (movie.createdBy !== user._id) {
       throw new ConvexError("You don't have permission to delete this movie");
     }
-    
+
     // Delete the movie
     await ctx.db.delete(args.movieId);
-    
+
     // Delete all comments associated with this movie
     const comments = await ctx.db
       .query("comments")
       .withIndex("by_movie", (q) => q.eq("movieId", args.movieId))
       .collect();
-    
+
     for (const comment of comments) {
       await ctx.db.delete(comment._id);
     }
-    
+
     // Delete all ratings associated with this movie
     const ratings = await ctx.db
       .query("ratings")
       .withIndex("by_movie", (q) => q.eq("movieId", args.movieId))
       .collect();
-    
+
     for (const rating of ratings) {
       await ctx.db.delete(rating._id);
     }
-    
+
     return args.movieId;
   }
 });
 
+export const incrementViews = mutation({
+  args: {
+    movieId: v.id("movies"),
+  },
+  handler: async (ctx, args) => {
+    // Get the movie
+    const movie = await ctx.db.get(args.movieId);
+    
+    if (!movie) {
+      throw new ConvexError("Movie not found");
+    }
+    
+    // Increment the views
+    return await ctx.db.patch(args.movieId, {
+      views: (movie.views || 0) + 1,
+      updatedAt: Date.now(),
+    });
+  },
+});

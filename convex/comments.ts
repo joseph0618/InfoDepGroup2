@@ -6,7 +6,8 @@ import { getUserById } from "./users";
 export const getCommentsByMovie = query({
     args: {
       movieId: v.id("movies"),
-      limit: v.optional(v.number()),  // explicitly declare optional limit
+      limit: v.optional(v.number()), 
+      refreshKey: v.optional(v.number()), // explicitly declare optional limit
     },
     handler: async (ctx, args) => {
       const { movieId, limit = 20 } = args;

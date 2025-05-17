@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 
 import EmptyState from "@/components/EmptyState";
 import LoaderSpinner from "@/components/LoaderSpinner";
-import PodcastCard from "@/components/PodcastCard";
+import MovieCard from "@/components/MovieCard";
 import ProfileCard from "@/components/ProfileCard";
 import { api } from "@/convex/_generated/api";
 
@@ -18,8 +18,8 @@ const ProfilePage = ({
   const user = useQuery(api.users.getUserById, {
     clerkId: params.profileId,
   });
-  const podcastsData = useQuery(api.podcasts.getPodcastByAuthorId, {
-    authorId: params.profileId,
+  const podcastsData = useQuery(api.movies.getMovr, {
+    dire: params.profileId,
   });
 
   if (!user || !podcastsData) return <LoaderSpinner />;
@@ -42,12 +42,13 @@ const ProfilePage = ({
             {podcastsData?.podcasts
               ?.slice(0, 4)
               .map((podcast) => (
-                <PodcastCard
+                <MovieCard
                   key={podcast._id}
                   imgUrl={podcast.imageUrl!}
                   title={podcast.podcastTitle!}
+                  rating={podcast.rating}
                   description={podcast.podcastDescription}
-                  podcastId={podcast._id}
+                  movieId={podcast._id}
                 />
               ))}
           </div>

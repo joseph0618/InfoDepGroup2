@@ -14,6 +14,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "img.clerk.com",
       },
+      {
+        protocol: "https",
+        hostname: "fast-echidna-276.convex.cloud",
+      },
     ],
   },
 };

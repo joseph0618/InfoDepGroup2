@@ -10,9 +10,9 @@ export const sidebarLinks = [
     label: "Discover",
   },
   {
-    imgURL: "/icons/microphone.svg",
-    route: "/create-podcast",
-    label: "Create Podcast",
+    imgURL: "/icons/movie.svg", // movie icon (incomplete)
+    route: "/create-movie",
+    label: "Create Movie",
   },
 ];
 
