@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import EmptyState from "@/components/EmptyState";
 import LoaderSpiner from "@/components/LoaderSpinner";
-import PodcastCard from "@/components/MovieCard";
+import MovieCard from "@/components/MovieCard";
 import Searchbar from "@/components/Searchbar";
 
 function Discover({
@@ -12,7 +12,7 @@ function Discover({
 }: {
   searchParams: { search: string };
 }) {
-  const podcastData = useQuery(api.podcasts.getPodcastBySearch, {
+  const movieData = useQuery(api.movies.searchMovies, {
     search: search || "",
   });
 
@@ -21,21 +21,22 @@ function Discover({
       <Searchbar />
       <div className="flex flex-col gap-9">
         <h1 className="text-20 font-bold text-white-1">
-          {search ? "Search results for: " : "Discover Trending Podcasts"}
+          {search ? "Search results for: " : "Discover Trending Movies"}
           {search && <span className="text-white-2">{search}</span>}
         </h1>
-        {podcastData ? (
+        {movieData ? (
           <>
-            {podcastData.length > 0 ? (
+            {movieData.length > 0 ? (
               <div className="podcast_grid">
-                {podcastData?.map(
-                  ({ _id, imageUrl, podcastTitle, podcastDescription }) => (
-                    <PodcastCard
+                {movieData?.map(
+                  ({ _id, imageUrl, title, rating, description }) => (
+                    <MovieCard
                       key={_id}
-                      podcastId={_id}
-                      title={podcastTitle}
-                      description={podcastDescription}
+                      movieId={_id}
+                      title={title}
+                      description={description}
                       imgUrl={imageUrl!}
+                      rating={rating}
                     />
                   ),
                 )}

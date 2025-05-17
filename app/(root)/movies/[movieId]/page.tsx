@@ -9,12 +9,12 @@ import CommentSection from '@/components/CommentSection';
 import { useRouter } from 'next/navigation';
 import { CommentWithUser } from '@/types';
 
-export default function MoviePage({ params }: { params: { id: string } }) {
+export default function MoviePage({ params }: { params: { movieId: string } }) {
   const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Safely assert id type
-  const movieId = params.id as Id<"movies">;
+  const movieId = params.movieId as Id<"movies">;
 
   // Fetch movie data
   const movie = useQuery(api.movies.getMovieById, { movieId });
