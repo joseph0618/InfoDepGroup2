@@ -5,8 +5,6 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useAuth } from '@clerk/nextjs';
 import { Id } from '@/convex/_generated/dataModel';
-import { formatDistance } from 'date-fns';
-
 interface CommentSectionProps {
   comments: CommentWithUser[];
   movieId: Id<"movies">;
@@ -16,20 +14,20 @@ interface CommentSectionProps {
 export default function CommentSection({ comments, movieId, onCommentAdded }: CommentSectionProps) {
   const [newComment, setNewComment] = useState('');
   const { isSignedIn } = useAuth();
-  
+
   const addComment = useMutation(api.comments.addComment);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newComment.trim()) return;
-    
+
     try {
       await addComment({
         movieId,
         content: newComment.trim()
       });
-      
+
       setNewComment('');
       onCommentAdded();
     } catch (error) {
@@ -38,17 +36,23 @@ export default function CommentSection({ comments, movieId, onCommentAdded }: Co
   };
 
   const formatTimestamp = (timestamp: number) => {
-    return formatDistance(timestamp, Date.now(), { addSuffix: true });
+    const formatter = new Intl.RelativeTimeFormat('en', { style: 'short' });
+    const seconds = Math.round((timestamp - Date.now()) / 1000);
+
+    if (seconds > -60) return 'just now';
+    if (seconds > -3600) return formatter.format(Math.round(seconds / 60), 'minute');
+    if (seconds > -86400) return formatter.format(Math.round(seconds / 3600), 'hour');
+    return formatter.format(Math.round(seconds / 86400), 'day');
   };
 
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-6">Comments</h2>
-      
+      <h2 className="text-2xl font-bold mb-6 text-gray-100">Comments</h2>
+
       {isSignedIn ? (
         <form onSubmit={handleSubmit} className="mb-8">
           <div className="mb-4">
-            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-300 mb-1">
               Add a comment
             </label>
             <textarea
@@ -70,17 +74,17 @@ export default function CommentSection({ comments, movieId, onCommentAdded }: Co
         </form>
       ) : (
         <div className="mb-8 p-4 bg-gray-50 rounded-md text-center">
-          <p className="text-gray-600">Please sign in to leave a comment.</p>
+          <p className="text-gray-100">Please sign in to leave a comment.</p>
         </div>
       )}
-      
+
       <div className="space-y-6">
         {comments && comments.length > 0 ? (
           comments.map((comment) => (
             <div key={comment._id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
               <div className="flex justify-between items-start">
                 <div className="flex items-center">
-                  <div className="font-medium text-gray-900">{comment.user?.name || 'Anonymous'}</div>
+                  <div className="font-medium text-gray-300 hover:underline">{comment.user?.name || 'Anonymous'}</div>
                   <div className="text-sm text-gray-500 ml-2">
                     {formatTimestamp(comment.createdAt)}
                   </div>
@@ -92,7 +96,7 @@ export default function CommentSection({ comments, movieId, onCommentAdded }: Co
                   </div>
                 )}
               </div>
-              <div className="mt-2 text-gray-700">{comment.content}</div>
+              <div className="mt-2 text-gray-100">{comment.content}</div>
             </div>
           ))
         ) : (

@@ -10,10 +10,10 @@ export default defineSchema({
     genre: v.optional(v.array(v.string())),
     cast: v.optional(v.array(v.string())),
     releaseYear: v.optional(v.number()),
-    rating: v.number(),
+    rating: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
-    
+
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
     createdBy: v.id("users"),
@@ -46,7 +46,7 @@ export default defineSchema({
   ratings: defineTable({
     movieId: v.id("movies"),
     userId: v.id("users"),
-    score: v.number(), 
+    score: v.number(),
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
   })

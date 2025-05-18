@@ -40,7 +40,7 @@ function RightSidebar() {
         <Carousel fansLikeDetail={topPodcasters!} />
       </section>
       <section className="flex flex-col gap-8 pt-12 ">
-        <Header headerTitle="Top Podcastrs" />
+        <Header headerTitle="Top Movie List Creators" />
         <div className="flex flex-col gap-6">
           {topPodcasters?.slice(0, 4).map((podcaster) => (
             <div
@@ -62,7 +62,7 @@ function RightSidebar() {
               </figure>
               <div className="flex items-center">
                 <p className="text-12 font-normal text-white-1">
-                  {podcaster.totalPodcasts} podcasts
+                  {podcaster.totalPodcasts} movies
                 </p>
               </div>
             </div>
