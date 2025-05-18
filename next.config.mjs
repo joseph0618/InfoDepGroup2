@@ -18,6 +18,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "fast-echidna-276.convex.cloud",
       },
+      {
+        protocol: "https",
+        hostname: "quiet-jaguar-835.convex.cloud",
+      },
     ],
   },
 };

@@ -16,19 +16,19 @@ interface StarRatingProps {
   readonly?: boolean;
 }
 
-const StarRating = ({ 
-  movieId, 
-  initialRating = 0, 
+const StarRating = ({
+  movieId,
+  initialRating = 0,
   onRatingChange,
   size = 20,
-  readonly = false 
+  readonly = false
 }: StarRatingProps) => {
   const { user } = useUser();
   const { toast } = useToast();
   const [rating, setRating] = useState<number>(initialRating);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const rateMovie = useMutation(api.ratings.rateMovie);
 
   const handleMouseOver = (index: number) => {
@@ -43,7 +43,7 @@ const StarRating = ({
 
   const handleClick = async (index: number) => {
     if (readonly) return;
-    
+
     try {
       if (!user) {
         toast({
@@ -55,13 +55,13 @@ const StarRating = ({
 
       setIsSubmitting(true);
       setRating(index);
-      
+
       if (onRatingChange) {
         onRatingChange(index);
       }
 
-    
-      
+
+
       await rateMovie({
         movieId,
         score: index,
@@ -78,7 +78,7 @@ const StarRating = ({
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
-      
+
       // Revert to previous rating on error
       setRating(initialRating);
     } finally {
@@ -87,8 +87,8 @@ const StarRating = ({
   };
 
   return (
-    <div 
-      className="flex items-center" 
+    <div
+      className="flex items-center"
       onMouseLeave={handleMouseLeave}
     >
       {[1, 2, 3, 4, 5].map((index) => (

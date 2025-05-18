@@ -16,6 +16,8 @@ function Discover({
     search: search || "",
   });
 
+  console.log("Detailed Movie data in Discover page:", JSON.stringify(movieData, null, 2));
+
   return (
     <div className="flex flex-col gap-9">
       <Searchbar />
@@ -27,9 +29,9 @@ function Discover({
         {movieData ? (
           <>
             {movieData.length > 0 ? (
-              <div className="podcast_grid">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-4">
                 {movieData?.map(
-                  ({ _id, imageUrl, title, rating, description }) => (
+                  ({ _id, imageUrl, title, rating, description, genre }) => (
                     <MovieCard
                       key={_id}
                       movieId={_id}
@@ -37,6 +39,7 @@ function Discover({
                       description={description}
                       imgUrl={imageUrl!}
                       rating={rating}
+                      genre={genre || ["Unknown"]}
                     />
                   ),
                 )}
