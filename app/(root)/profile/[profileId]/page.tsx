@@ -1,65 +1,29 @@
 "use client";
 
 import { useQuery } from "convex/react";
-
-import EmptyState from "@/components/EmptyState";
-import LoaderSpinner from "@/components/LoaderSpinner";
-import MovieCard from "@/components/MovieCard";
 import ProfileCard from "@/components/ProfileCard";
+import LoaderSpinner from "@/components/LoaderSpinner";
 import { api } from "@/convex/_generated/api";
 
-const ProfilePage = ({
-  params,
-}: {
-  params: {
-    profileId: string;
-  };
-}) => {
-  const user = useQuery(api.users.getUserById, {
-    clerkId: params.profileId,
-  });
-  const podcastsData = useQuery(api.movies.getMovieByDirector, {
-    director: params.profileId,
-  });
+const ProfilePage = ({ params }: { params: { profileId: string } }) => {
+  const user = useQuery(api.users.getUserById, { clerkId: params.profileId });
+  const userData = useQuery(api.users.getTopUsersByMovieCount);
 
-  if (!user || !podcastsData) return <LoaderSpinner />;
+  if (!user || !userData) return <LoaderSpinner />;
+
+  // Find the specific user's data
+  const userStats = userData.find((u) => u.clerkId === params.profileId);
+
   return (
-    <section className="mt-9 flex flex-col">
-      <h1 className="text-20 font-bold text-white-1 max-md:text-center">
-        Podcaster Profile
-      </h1>
-      <div className="mt-6 flex flex-col gap-6 max-md:items-center md:flex-row">
+    <section className="mt-9 flex flex-col items-center">
+      <h1 className="text-3xl font-bold text-white">User Profile</h1>
+      {userStats && (
         <ProfileCard
-          podcastData={podcastsData!}
-          imageUrl={user?.imageUrl!}
-          userFirstName={user?.name!}
+          user={user}
+          totalMovies={userStats.totalMovies}
+          topMovies={userStats.topMovies}
         />
-      </div>
-      <section className="mt-9 flex flex-col gap-5">
-        <h1 className="text-20 font-bold text-white-1">All Podcasts</h1>
-        {podcastsData && podcastsData.podcasts.length > 0 ? (
-          <div className="podcast_grid">
-            {podcastsData?.podcasts
-              ?.slice(0, 4)
-              .map((podcast) => (
-                <MovieCard
-                  key={podcast._id}
-                  imgUrl={podcast.imageUrl!}
-                  title={podcast.podcastTitle!}
-                  rating={podcast.rating}
-                  description={podcast.podcastDescription}
-                  movieId={podcast._id}
-                />
-              ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="You have not created any podcasts yet"
-            buttonLink="/create-podcast"
-            buttonText="Create Podcast"
-          />
-        )}
-      </section>
+      )}
     </section>
   );
 };

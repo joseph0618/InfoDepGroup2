@@ -11,10 +11,6 @@ export interface EmptyStateProps {
   buttonText?: string;
   buttonLink?: string;
 }
-export interface ProfilePodcastProps {
-  podcasts: any[]; // PodcastProps (I can't fix it!)
-  listeners: number;
-}
 
 export interface ProfileMovieProps {
   title: string;
@@ -42,16 +38,6 @@ export interface RatingProps {
   score: number;
 }
 
-export interface GeneratePodcastProps {
-  voiceType: string;
-  setAudio: Dispatch<SetStateAction<string>>;
-  audio: string;
-  setAudioStorageId: Dispatch<SetStateAction<Id<"_storage"> | null>>;
-  voicePrompt: string;
-  setVoicePrompt: Dispatch<SetStateAction<string>>;
-  setAudioDuration: Dispatch<SetStateAction<number>>;
-}
-
 export interface GenerateThumbnailProps {
   setImage: Dispatch<SetStateAction<string>>;
   setImageStorageId: Dispatch<SetStateAction<Id<"_storage"> | null>>;
@@ -60,22 +46,21 @@ export interface GenerateThumbnailProps {
   setImagePrompt: Dispatch<SetStateAction<string>>;
 }
 
-export interface AudioProps {
-  title: string;
-  audioUrl: string;
-  author: string;
-  imageUrl: string;
-  podcastId: string;
-}
-
-export interface AudioContextType {
-  audio: AudioProps | undefined;
-  setAudio: React.Dispatch<React.SetStateAction<AudioProps | undefined>>;
-}
 export interface ProfileCardProps {
-  podcastData: ProfilePodcastProps;
-  imageUrl: string;
-  userFirstName: string;
+  user: {
+    name: string;
+    email: string;
+    imageUrl?: string;
+  };
+  totalMovies: number;
+  topMovies: {
+    movieId: Id<"movies">;
+    movieTitle: string;
+    rating?: number;
+    genre?: string[];
+    description?: string;
+    imgUrl: string;
+  }[];
 }
 
 export type UseDotButtonType = {

@@ -1,95 +1,57 @@
 "use client";
+
 import Image from "next/image";
-import { useEffect, useState } from "react";
-
-// import { useAudio } from "@/providers/AudioProvider";
-import {ProfileCardProps } from "@/types";
-
-import LoaderSpinner from "./LoaderSpinner";
-import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
+import { ProfileCardProps } from "@/types";
 
 const ProfileCard = ({
-  podcastData,
-  imageUrl,
-  userFirstName,
+  user,
+  totalMovies,
+  topMovies,
 }: ProfileCardProps) => {
-  // const { setAudio } = useAudio();
+  const router = useRouter();
 
-  // const [randomMovie, setRandomMovie] = useState<PodcastProps | null>(null);
-
-  const playRandomPodcast = () => {
-    const randomIndex = Math.floor(Math.random() * podcastData.podcasts.length);
-
-    setRandomPodcast(podcastData.podcasts[randomIndex]);
+  const handleMovieClick = (movieId: string) => {
+    router.push(`/movies/${movieId}`);
   };
 
-  useEffect(() => {
-    if (randomPodcast) {
-      setAudio({
-        title: randomPodcast.podcastTitle,
-        audioUrl: randomPodcast.audioUrl || "",
-        imageUrl: randomPodcast.imageUrl || "",
-        author: randomPodcast.author,
-        podcastId: randomPodcast._id,
-      });
-    }
-  }, [randomPodcast, setAudio]);
-
-  if (!imageUrl) return <LoaderSpinner />;
-
   return (
-    <div className="mt-6 flex flex-col gap-6 max-md:items-center md:flex-row">
+    <div className="flex flex-col items-center md:flex-row gap-6 mt-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+      {/* User Profile Picture */}
       <Image
-        src={imageUrl}
-        width={250}
-        height={250}
-        alt="Podcaster"
-        className="aspect-square rounded-lg"
+        src={user.imageUrl || "/default-profile.jpg"}
+        width={150}
+        height={150}
+        alt={`${user.name}'s profile picture`}
+        className="rounded-full border-4 border-gray-700"
       />
-      <div className="flex flex-col justify-center max-md:items-center">
-        <div className="flex flex-col gap-2.5">
-          <figure className="flex gap-2 max-md:justify-center">
-            <Image
-              src="/icons/verified.svg"
-              width={15}
-              height={15}
-              alt="verified"
-            />
-            <h2 className="text-14 font-medium text-white-2">
-              Verified Creator
-            </h2>
-          </figure>
-          <h1 className="text-32 font-extrabold tracking-[-0.32px] text-white-1">
-            {userFirstName}
-          </h1>
-        </div>
-        <figure className="flex gap-3 py-6">
-          <Image
-            src="/icons/headphone.svg"
-            width={24}
-            height={24}
-            alt="headphones"
-          />
-          <h2 className="text-16 font-semibold text-white-1">
-            {podcastData?.listeners} &nbsp;
-            <span className="font-normal text-white-2">monthly listeners</span>
-          </h2>
-        </figure>
-        {podcastData?.podcasts.length > 0 && (
-          <Button
-            onClick={playRandomPodcast}
-            className="text-16 bg-orange-1 font-extrabold text-white-1"
-          >
-            <Image
-              src="/icons/Play.svg"
-              width={20}
-              height={20}
-              alt="random play"
-            />{" "}
-            &nbsp; Play a random podcast
-          </Button>
-        )}
+
+      {/* User Info */}
+      <div className="flex flex-col items-center md:items-start flex-1">
+        <h1 className="text-2xl font-bold text-white-1">{user.name}</h1>
+        <p className="text-gray-400">{user.email}</p>
+        <p className="mt-2 text-gray-300">
+          Total Movies Created: <span className="font-semibold">{totalMovies}</span>
+        </p>
       </div>
+
+      {/* Top Movies */}
+      {topMovies && topMovies.length > 0 && (
+        <div className="mt-6 w-full">
+          <h2 className="text-lg font-semibold text-white-1 mb-4">Top Movies:</h2>
+          <ul className="space-y-2">
+            {topMovies.map((movie) => (
+              <li
+                key={movie.movieId}
+                className="cursor-pointer text-blue-400 hover:underline"
+                onClick={() => handleMovieClick(movie.movieId)}
+              >
+                {movie.movieTitle}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
