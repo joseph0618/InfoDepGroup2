@@ -18,8 +18,8 @@ const ProfilePage = ({
   const user = useQuery(api.users.getUserById, {
     clerkId: params.profileId,
   });
-  const podcastsData = useQuery(api.movies.getMovr, {
-    dire: params.profileId,
+  const podcastsData = useQuery(api.movies.getMovieByDirector, {
+    director: params.profileId,
   });
 
   if (!user || !podcastsData) return <LoaderSpinner />;

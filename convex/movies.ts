@@ -347,5 +347,7 @@ export const incrementViews = mutation({
       views: (movie.views || 0) + 1,
       updatedAt: Date.now(),
     });
+
+    
   },
 });

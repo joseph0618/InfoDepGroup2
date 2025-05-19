@@ -7,7 +7,7 @@ import { Id } from '@/convex/_generated/dataModel';
 import MovieDetails from '@/components/MovieDetails';
 import CommentSection from '@/components/CommentSection';
 import { useRouter } from 'next/navigation';
-import { CommentWithUser } from '@/types';
+import { CommentWithUser, Movie } from '@/types';
 
 export default function MoviePage({ params }: { params: { movieId: string } }) {
   const router = useRouter();
@@ -56,13 +56,13 @@ export default function MoviePage({ params }: { params: { movieId: string } }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-12">
-        <MovieDetails movie={movie} />
+        <MovieDetails movie={movie as Movie}  />
       </div>
       
       <div className="mt-12 border-t pt-8">
         <CommentSection 
           comments={comments as CommentWithUser[]} 
-          movieId={movie._id}
+          movieId={movie._id }
           onCommentAdded={handleCommentAdded}
         />
       </div>

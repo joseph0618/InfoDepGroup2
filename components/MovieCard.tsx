@@ -1,11 +1,12 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { MovieCardProps } from "@/types";
 import StarRating from "@/components/StarRating";
 import { useUser } from "@clerk/nextjs";
+import { incrementViews } from "@/convex/movies";
 
 function MovieCard({
   movieId,
@@ -18,6 +19,7 @@ function MovieCard({
   const router = useRouter();
   const { isSignedIn } = useUser();
   const [showRating, setShowRating] = useState(false);
+  const incrementViews = useMutation(api.movies.incrementViews);
 
   // Get user's rating for this movie (if logged in)
   const userRating = useQuery(api.ratings.getUserRating,
@@ -25,6 +27,7 @@ function MovieCard({
   );
 
   const handleViews = () => {
+    incrementViews({movieId})
     router.push(`/movies/${movieId}`, { scroll: true });
   };
 

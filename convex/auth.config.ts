@@ -1,7 +1,7 @@
 const authConfig = {
   providers: [
     {
-      domain: "https://super-liger-6.clerk.accounts.dev",
+      domain: "https://casual-minnow-7.clerk.accounts.dev",
       applicationID: "convex",
     },
   ],

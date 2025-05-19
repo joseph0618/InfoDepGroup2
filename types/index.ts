@@ -95,7 +95,7 @@ export interface User {
 }
 
 export interface Movie {
-  _id: Id<"movies">;
+  _id?: Id<"movies">;
   user: Id<"users">;
   title: string;
   description: string;

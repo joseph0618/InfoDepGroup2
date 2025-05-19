@@ -2,8 +2,8 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import { useAudio } from "@/providers/AudioProvider";
-import { PodcastProps, ProfileCardProps } from "@/types";
+// import { useAudio } from "@/providers/AudioProvider";
+import {ProfileCardProps } from "@/types";
 
 import LoaderSpinner from "./LoaderSpinner";
 import { Button } from "./ui/button";
@@ -13,9 +13,9 @@ const ProfileCard = ({
   imageUrl,
   userFirstName,
 }: ProfileCardProps) => {
-  const { setAudio } = useAudio();
+  // const { setAudio } = useAudio();
 
-  const [randomPodcast, setRandomPodcast] = useState<PodcastProps | null>(null);
+  // const [randomMovie, setRandomMovie] = useState<PodcastProps | null>(null);
 
   const playRandomPodcast = () => {
     const randomIndex = Math.floor(Math.random() * podcastData.podcasts.length);

@@ -91,26 +91,24 @@ const StarRating = ({
       className="flex items-center"
       onMouseLeave={handleMouseLeave}
     >
-      {[1, 2, 3, 4, 5].map((index) => (
-        <Star
-          key={index}
-          size={size}
-          onClick={() => handleClick(index)}
-          onMouseOver={() => handleMouseOver(index)}
-          fill={
-            (hoverRating >= index || (!hoverRating && rating >= index))
-              ? "#FFD700"
-              : "transparent"
-          }
-          stroke={
-            (hoverRating >= index || (!hoverRating && rating >= index))
-              ? "#FFD700"
-              : "#9ca3af"
-          }
-          className={`cursor-${readonly ? "default" : "pointer"} transition-colors duration-200 ${isSubmitting ? "opacity-50" : ""}`}
-          strokeWidth={1.5}
-        />
-      ))}
+      {[1, 2, 3, 4, 5].map((index) => {
+        const isFilled = readonly
+          ? initialRating >= index
+          : hoverRating >= index || (!hoverRating && rating >= index);
+
+        return (
+          <Star
+            key={index}
+            size={size}
+            onClick={() => handleClick(index)}
+            onMouseOver={() => handleMouseOver(index)}
+            fill={isFilled ? "#FFD700" : "transparent"}
+            stroke={isFilled ? "#FFD700" : "#9ca3af"}
+            strokeWidth={1.5}
+            className={`cursor-${readonly ? "default" : "pointer"} transition-colors duration-200 ${isSubmitting ? "opacity-50" : ""}`}
+          />
+        );
+      })}
     </div>
   );
 };

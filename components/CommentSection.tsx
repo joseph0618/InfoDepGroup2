@@ -7,7 +7,7 @@ import { useAuth } from '@clerk/nextjs';
 import { Id } from '@/convex/_generated/dataModel';
 interface CommentSectionProps {
   comments: CommentWithUser[];
-  movieId: Id<"movies">;
+  movieId?: Id<"movies">;
   onCommentAdded: () => void;
 }
 
@@ -21,6 +21,10 @@ export default function CommentSection({ comments, movieId, onCommentAdded }: Co
     e.preventDefault();
 
     if (!newComment.trim()) return;
+    if (movieId === undefined) {
+      console.error('movieId is undefined');
+      return;
+    }
 
     try {
       await addComment({
@@ -31,6 +35,7 @@ export default function CommentSection({ comments, movieId, onCommentAdded }: Co
       setNewComment('');
       onCommentAdded();
     } catch (error) {
+      
       console.error('Failed to add comment:', error);
     }
   };
