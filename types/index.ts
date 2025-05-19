@@ -56,10 +56,10 @@ export interface ProfileCardProps {
   topMovies: {
     movieId: Id<"movies">;
     movieTitle: string;
-    rating?: number;
-    genre?: string[];
-    description?: string;
-    imgUrl: string;
+    // rating?: number;
+    // genre?: string[];
+    // description?: string;
+    // imgUrl: string;
   }[];
 }
 

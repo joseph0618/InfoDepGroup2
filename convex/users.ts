@@ -155,7 +155,7 @@ export const getTopUsersByMovieCount = query({
             // rating: m.rating,
             // genre: m.genre,
             // views: m.views,
-            ...m
+            
           })),
         };
       })
