@@ -13,9 +13,9 @@ import LoaderSpiner from "./LoaderSpinner";
 function RightSidebar() {
   const router = useRouter();
   const { user } = useUser();
-  const topPodcasters = useQuery(api.users.getTopUserByPodcastCount);
+  const topMovieCreators = useQuery(api.users.getTopUsersByMovieCount);
 
-  if (!topPodcasters) return <LoaderSpiner />;
+  if (!topMovieCreators) return <LoaderSpiner />;
 
   return (
     <section className="right_sidebar text-white-1">
@@ -35,34 +35,31 @@ function RightSidebar() {
           </div>
         </Link>
       </SignedIn>
-      <section>
-        <Header headerTitle="Fans Like You" />
-        <Carousel fansLikeDetail={topPodcasters!} />
-      </section>
+      
       <section className="flex flex-col gap-8 pt-12 ">
-        <Header headerTitle="Top Movie List Creators" />
+        <Header headerTitle="Top Movie Creators" />
         <div className="flex flex-col gap-6">
-          {topPodcasters?.slice(0, 4).map((podcaster) => (
+          {topMovieCreators?.slice(0, 4).map((creator) => (
             <div
-              key={podcaster._id}
+              key={creator._id}
               className="flex cursor-pointer justify-between transition-transform duration-300 ease-in-out transform hover:scale-105"
-              onClick={() => router.push(`/profile/${podcaster.clerkId}`)}
+              onClick={() => router.push(`/profile/${creator.clerkId}`)}
             >
               <figure className="flex items-center gap-2">
                 <Image
-                  src={podcaster.imageUrl}
-                  alt={podcaster.name}
+                  src={creator.imageUrl}
+                  alt={creator.name}
                   width={44}
                   height={44}
                   className="aspect-square rounded-lg"
                 />
                 <h2 className="text-14 font-semibold text-white-1">
-                  {podcaster.name}
+                  {creator.name}
                 </h2>
               </figure>
               <div className="flex items-center">
                 <p className="text-12 font-normal text-white-1">
-                  {podcaster.totalPodcasts} movies
+                  {creator.totalMovies} movies
                 </p>
               </div>
             </div>

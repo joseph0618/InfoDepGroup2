@@ -3,25 +3,22 @@ import { EmblaCarouselType } from "embla-carousel";
 import { DotButton, useDotButton } from "./EmblaCarouselDotButton";
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
-import { CarouselProps, TopPodcastersProps } from "@/types";
+import { CarouselProps } from "@/types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import LoaderSpiner from "./LoaderSpinner";
 
-const EmblaCarousel = ({ fansLikeDetail }: CarouselProps) => {
+const EmblaCarousel = ({ topMovieCreators }: CarouselProps) => {
   const router = useRouter();
-
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay()]);
 
   const onNavButtonClick = useCallback((emblaApi: EmblaCarouselType) => {
     const autoplay = emblaApi?.plugins()?.autoplay;
     if (!autoplay || !("stopOnInteraction" in autoplay.options)) return;
-
     const resetOrStop =
       autoplay.options.stopOnInteraction === false
         ? (autoplay.reset as () => void)
         : (autoplay.stop as () => void);
-
     resetOrStop();
   }, []);
 
@@ -30,11 +27,10 @@ const EmblaCarousel = ({ fansLikeDetail }: CarouselProps) => {
     onNavButtonClick,
   );
 
+  // Only show creators with at least one movie
   const slides =
-    fansLikeDetail &&
-    fansLikeDetail?.filter(
-      (item: TopPodcastersProps) => item.totalPodcasts > 0,
-    );
+    topMovieCreators &&
+    topMovieCreators.filter((item: any) => item.topMovies && item.topMovies.length > 0);
 
   if (!slides) return <LoaderSpiner />;
   return (
@@ -47,19 +43,17 @@ const EmblaCarousel = ({ fansLikeDetail }: CarouselProps) => {
           <figure
             key={item._id}
             className="carousel_box"
-            onClick={() =>
-              router.push(`/podcasts/${item.podcast[0]?.podcastId}`)
-            }
+            onClick={() => router.push(`/movies/${item.topMovies[0]?.movieId}`)}
           >
             <Image
-              src={item.imageUrl}
-              alt="card"
+              src={item.topMovies[0]?.imgUrl || "/default-movie.jpg"}
+              alt="movie poster"
               fill
               className="absolute size-full rounded-xl border-none"
             />
             <div className="glassmorphism-black relative z-10 flex flex-col rounded-b-xl p-4">
               <h2 className="text-14 font-semibold text-white-1">
-                {item.podcast[0]?.podcastTitle}
+                {item.topMovies[0]?.movieTitle}
               </h2>
               <p className="text-12 font-normal text-white-2">{item.name}</p>
             </div>

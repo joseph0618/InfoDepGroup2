@@ -1,12 +1,13 @@
-import { PropsWithChildren, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { EmblaCarouselType } from "embla-carousel";
 import { cn } from "@/lib/utils";
 
-type UseDotButtonType = {
+// Used for movie carousel navigation dots
+export interface UseDotButtonType {
   selectedIndex: number;
   scrollSnaps: number[];
   onDotButtonClick: (index: number) => void;
-};
+}
 
 export const useDotButton = (
   emblaApi: EmblaCarouselType | undefined,
@@ -34,7 +35,6 @@ export const useDotButton = (
 
   useEffect(() => {
     if (!emblaApi) return;
-
     onInit(emblaApi);
     onSelect(emblaApi);
     emblaApi.on("reInit", onInit).on("reInit", onSelect).on("select", onSelect);

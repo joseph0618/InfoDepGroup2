@@ -120,3 +120,17 @@ export interface Rating {
   createdAt: number;
   updatedAt?: number;
 }
+
+export interface CarouselProps {
+  topMovieCreators: Array<{
+    _id: string;
+    name: string;
+    imageUrl: string;
+    totalMovies: number;
+    topMovies: Array<{
+      movieId: Id<"movies">;
+      movieTitle: string;
+      imgUrl?: string;
+    }>;
+  }>;
+}

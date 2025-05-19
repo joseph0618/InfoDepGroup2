@@ -17,9 +17,7 @@ function Header({
       ) : (
         <div />
       )}
-      <Link href="/discover" className="text-16 font-semibold text-orange-1">
-        See all
-      </Link>
+      
     </header>
   );
 }
