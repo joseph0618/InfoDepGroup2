@@ -89,7 +89,7 @@ function MovieCard({
         >
           <div className="flex flex-col items-center gap-3">
             <h3 className="text-white font-semibold bg-gray-200 text-gray-800 px-2 py-1 rounded">
-              Rate "{title}"
+              Rate &quot;{title}&quot;
             </h3>
             <StarRating
               movieId={movieId}
